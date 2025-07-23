@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,6 +14,18 @@ class SpaceShooterGame extends FlameGame with PanDetector {
 
   @override
   Future<void> onLoad() async {
+    final parallax = await loadParallaxComponent(
+      [
+        ParallaxImageData("stars_0.png"),
+        ParallaxImageData("stars_1.png"),
+        ParallaxImageData("stars_2.png"),
+      ],
+      baseVelocity: Vector2(0, -4), //x(0px sec) y (-4px sec)
+      repeat: ImageRepeat.repeat,
+      velocityMultiplierDelta: Vector2(0, 5),
+    );
+    add(parallax);
+
     player = Player();
     add(player);
   }
@@ -23,17 +36,25 @@ class SpaceShooterGame extends FlameGame with PanDetector {
   }
 }
 
-class Player extends SpriteComponent with HasGameReference<SpaceShooterGame> {
+class Player extends SpriteAnimationComponent
+    with HasGameReference<SpaceShooterGame> {
   Player() : super(size: Vector2(100, 150), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    sprite = await game.loadSprite('player-sprite.png');
+    animation = await game.loadSpriteAnimation(
+      'player.png',
+      SpriteAnimationData.sequenced(
+        amount: 4,
+        stepTime: .2,
+        textureSize: Vector2(32, 48),
+      ),
+    );
 
     position = game.size / 2;
-    anchor = Anchor.center;
+    //anchor = Anchor.center; ???
   }
 
   void move(Vector2 delta) {
