@@ -1,3 +1,4 @@
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart';
@@ -10,7 +11,8 @@ void main() {
   runApp(GameWidget(game: SpaceShooterGame()));
 }
 
-class SpaceShooterGame extends FlameGame with PanDetector {
+class SpaceShooterGame extends FlameGame
+    with PanDetector, HasCollisionDetection {
   late Player player;
 
   @override
@@ -120,6 +122,7 @@ class Bullet extends SpriteAnimationComponent
         textureSize: Vector2(8, 16),
       ),
     );
+    add(RectangleHitbox(collisionType: CollisionType.passive));
   }
 
   @override
@@ -135,7 +138,7 @@ class Bullet extends SpriteAnimationComponent
 }
 
 class Enemy extends SpriteAnimationComponent
-    with HasGameReference<SpaceShooterGame> {
+    with CollisionCallbacks, HasGameReference<SpaceShooterGame> {
   Enemy({super.position})
     : super(size: Vector2.all(enemySize), anchor: Anchor.center);
 
@@ -153,6 +156,7 @@ class Enemy extends SpriteAnimationComponent
         textureSize: Vector2.all(16),
       ),
     );
+    add(RectangleHitbox());
   }
 
   @override
@@ -163,6 +167,19 @@ class Enemy extends SpriteAnimationComponent
 
     if (position.y > game.size.y) {
       removeFromParent();
+    }
+  }
+
+  @override
+  void onCollisionStart(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    super.onCollisionStart(intersectionPoints, other);
+
+    if (other is Bullet) {
+      removeFromParent();
+      other.removeFromParent();
     }
   }
 }
